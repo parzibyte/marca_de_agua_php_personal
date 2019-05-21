@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<!----
+    /**
+    * Poner marca de agua a múltiples archivos recibidos desde un formulario, 
+    * ponerlos dentro de un zip
+    * y enviar el zip como respuesta en el navegador
+    * 
+    * ======================================
+    * Nota: este es un script que yo uso, no está
+    * listo para producción; es para mi uso personal
+    * y aunque funciona no recomiendo usarlo
+    * ======================================
+    *
+    * @author parzibyte
+    */
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Poner marcas de agua</title>
+</head>
+
+<body>
+    <form method="POST" action="marcar.php" enctype="multipart/form-data">
+        <label for="original">Foto original:</label><br>
+        <input accept="image/png,image/jpeg" type="file" name="original[]" id="original" multiple>
+        <br>
+        <label for="marca_de_agua">Marca de agua:</label><br>
+        <input type="file" name="marca_de_agua" id="marca_de_agua">
+        <br><br>
+        <button>Enviar</button>
+    </form>
+</body>
+
+</html>
