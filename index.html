@@ -1,38 +1,137 @@
 <!DOCTYPE html>
-<html lang="es">
-<!----
-    /**
-    * Poner marca de agua a múltiples archivos recibidos desde un formulario, 
-    * ponerlos dentro de un zip
-    * y enviar el zip como respuesta en el navegador
-    * 
-    * ======================================
-    * Nota: este es un script que yo uso, no está
-    * listo para producción; es para mi uso personal
-    * y aunque funciona no recomiendo usarlo
-    * ======================================
-    *
-    * @author parzibyte
-    */
--->
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Poner marcas de agua</title>
+    <title>Marca de agua</title>
+    <link rel="stylesheet" href="./bulma.min.css">
 </head>
 
 <body>
-    <form method="POST" action="marcar.php" enctype="multipart/form-data">
-        <label for="original">Foto original:</label><br>
-        <input accept="image/png,image/jpeg" type="file" name="original[]" id="original" multiple>
-        <br>
-        <label for="marca_de_agua">Marca de agua:</label><br>
-        <input type="file" name="marca_de_agua" id="marca_de_agua">
-        <br><br>
-        <button>Enviar</button>
-    </form>
+    <section class="section">
+        <div class="columns">
+            <div class="column has-text-centered">
+                <h2 class="is-size-3">Colocar marca de agua</h2>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column is-one-fifth">
+                <strong>Imagen</strong>
+                <div class="file has-name is-fullwidth">
+                    <label class="file-label">
+                        <input class="file-input" type="file" accept="image/png,image/jpeg" id="imagen">
+                        <span class="file-cta">
+                            <span class="file-label">
+                                Seleccione
+                            </span>
+                        </span>
+                        <span class="file-name" id="nombreImagen">
+                        </span>
+                    </label>
+                </div>
+                <strong>Marca de agua</strong>
+                <div class="file has-name is-fullwidth">
+                    <label class="file-label">
+                        <input class="file-input" type="file" accept="image/png,image/jpeg" id="marca">
+                        <span class="file-cta">
+                            <span class="file-label">
+                                Seleccione
+                            </span>
+                        </span>
+                        <span class="file-name" id="nombreMarca">
+
+                        </span>
+                    </label>
+                </div>
+                <div class="field">
+                    <label class="label">Opacidad</label>
+                    <div class="control">
+                        <input id="opacidad" type="range" min="0.1" max="1.0" step="0.05">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label">Separación entre cada marca</label>
+                    <div class="control">
+                        <input id="separacion" type="range" min="1" max="500">
+                    </div>
+                </div>
+                <button class="button is-success" id="botonDescargar">Descargar</button>
+            </div>
+            <div class="column has-text-centered">
+                <img id="imagenResultado" src="" alt="">
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column has-text-centered">
+                <a href="https://parzibyte.me/blog">By Parzibyte</a>
+            </div>
+        </div>
+    </section>
+    <script>
+        const $imagenSeleccionada = document.querySelector("#imagen"),
+            $marcaSeleccionada = document.querySelector("#marca"),
+            $imagen = document.querySelector("#imagenResultado"),
+            $opacidad = document.querySelector("#opacidad"),
+            $separacion = document.querySelector("#separacion"),
+            $botonDescargar = document.querySelector("#botonDescargar"),
+            $nombreImagen = document.querySelector("#nombreImagen"),
+            $nombreMarca = document.querySelector("#nombreMarca");
+
+        let ultimoUrl, ultimoNombre; // Para cuando se descarga la imagen
+        // Desencadenada cuando se cambia la imagen o la marca de agua
+        const onCambioDeArchivo = async () => {
+            if ($imagenSeleccionada.files.length != 1 || $marcaSeleccionada.files.length != 1) {
+                return;
+            }
+            const fd = new FormData();
+            fd.append("imagen", $imagenSeleccionada.files[0]);
+            fd.append("marca", $marcaSeleccionada.files[0]);
+            fd.append("opacidad", parseFloat($opacidad.value));
+            fd.append("separacion", parseInt($separacion.value));
+            const respuesta = await fetch("./api.php", {
+                method: "POST",
+                body: fd,
+            });
+            const imagenBlob = await respuesta.blob();
+            const objectUrl = URL.createObjectURL(imagenBlob);
+            ultimoUrl = objectUrl;
+            $imagen.src = objectUrl;
+        }
+        $imagenSeleccionada.onchange = () => {
+            if ($imagenSeleccionada.files.length != 1) {
+                return;
+            }
+            const nombreArchivo = $imagenSeleccionada.files[0].name;
+            ultimoNombre = nombreArchivo;
+            $nombreImagen.innerHTML = nombreArchivo;
+            onCambioDeArchivo();
+        }
+        $marcaSeleccionada.onchange = () => {
+            if ($marcaSeleccionada.files.length != 1) {
+                return;
+            }
+            const nombreArchivo = $marcaSeleccionada.files[0].name;
+            $nombreMarca.innerHTML = nombreArchivo;
+            onCambioDeArchivo();
+        }
+        [$opacidad, $separacion].forEach($elemento => $elemento.onchange = onCambioDeArchivo);
+
+
+        const descargar = () => {
+            if (!ultimoUrl) {
+                return;
+            }
+            const a = document.createElement("a");
+            a.href = ultimoUrl;
+            a.download = ultimoNombre;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        $botonDescargar.onclick = descargar;
+    </script>
 </body>
 
 </html>
